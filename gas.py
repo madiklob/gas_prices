@@ -1,8 +1,28 @@
 import sqlite3
+import http.client
 
-conn = sqlite3.connect(":memory:")
 
-c = conn.cursor()
+# Working with an API to get gas data
+conn = http.client.HTTPSConnection("api.collectapi.com")
+
+headers = {
+    "content-type": "application/json",
+    "authorization": "apikey 1rTMKG2clXIvvNhcMgGMsV:3OcP369qPhkt0ReVHOiYIf",
+}
+
+conn.request("GET", "/gasPrice/stateUsaPrice?state=CA", headers=headers)
+
+res = conn.getresponse()
+data = res.read()
+
+print(data.decode("utf-8"))
+
+
+# Here is the SQL code for the table I would like to be able to make
+
+conn2 = sqlite3.connect(":memory:")
+
+c = conn2.cursor()
 
 c.execute(
     """CREATE TABLE gas (
@@ -16,8 +36,8 @@ c.execute(
 
 
 def insert_gas(conn, zip_code, street, station, price_per_gallon, date):
-    with conn:
-        c = conn.cursor()
+    with conn2:
+        c = conn2.cursor()
         c.execute(
             "INSERT INTO gas VALUES (:zip_code, :street, :station, :price_per_gallon, :date)",
             {
@@ -50,7 +70,7 @@ def get_price_by_zip_and_name(zip_code, station, street):
 
 
 # def update_level(lecture, new_level):
-#     with conn:
+#     with conn2:
 #         c.execute(
 #             """UPDATE lectures SET level=:level WHERE
 # 			abbr=:abbr AND hour=:hour""",
@@ -59,7 +79,7 @@ def get_price_by_zip_and_name(zip_code, station, street):
 
 
 # def remove_lecture(lecture):
-#     with conn:
+#     with conn2:
 #         c.execute(
 #             """DELETE FROM lectures WHERE abbr = :abbr AND
 # 			level=:level AND hour=:hour""",
@@ -85,5 +105,5 @@ def get_price_by_zip_and_name(zip_code, station, street):
 
 
 # Example usage
-insert_gas(conn, 92127, "Carmel Mountain Road", "Costco", 4.99, "2023-08-30")
-print(get_price_by_zip_and_name(92127, "Costco", "Carmel Mountain Road"))
+insert_gas(conn2, 92127, "Carmel Mountain Road", "Costco", 4.99, "2023-08-30")
+# print(get_price_by_zip_and_name(92127, "Costco", "Carmel Mountain Road"))
